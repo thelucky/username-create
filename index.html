@@ -26,7 +26,7 @@
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             width: 100%;
-            max-width: 500px;
+            max-width: 720px;
             padding: 30px;
         }
         
@@ -68,6 +68,47 @@
             font-size: 18px;
             font-weight: 500;
             word-break: break-all;
+        }
+
+        .result-textarea {
+            width: 100%;
+            min-height: 220px;
+            padding: 12px;
+            border: 1px solid #e1e5eb;
+            border-radius: 8px;
+            background-color: white;
+            color: #212529;
+            font-size: 15px;
+            line-height: 1.6;
+            resize: vertical;
+            outline: none;
+        }
+
+        .result-textarea:focus {
+            border-color: #6e8efb;
+            box-shadow: 0 0 0 3px rgba(110, 142, 251, 0.12);
+        }
+
+        .batch-result-box {
+            align-items: flex-start;
+        }
+
+        .batch-options-container {
+            margin-top: 28px;
+            margin-bottom: 18px;
+        }
+
+        .batch-controls-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .batch-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
         }
         
         .button-group {
@@ -232,6 +273,15 @@
             .button-group {
                 flex-direction: column;
             }
+
+            .batch-controls-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .batch-actions {
+                width: 100%;
+            }
             
             .action-btn {
                 padding: 6px 10px;
@@ -308,9 +358,42 @@
                     </label>
                 </div>
             </div>
+
         </div>
         
         <button id="generateBothBtn" class="generate-both-btn">同时生成用户名和密码</button>
+
+        <div class="options-container batch-options-container">
+            <div class="option-group">
+                <div class="option-title">批量生成数量</div>
+                <select id="batchCount" class="select-group">
+                    <option value="10">10 个</option>
+                    <option value="20">20 个</option>
+                    <option value="50">50 个</option>
+                </select>
+            </div>
+
+            <div class="batch-controls-row">
+                <div class="checkbox-group">
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="batchIncludePassword">
+                        <span>批量生成密码</span>
+                    </label>
+                </div>
+
+                <div class="batch-actions">
+                    <button class="action-btn generate-single-btn" onclick="generateBatchUsernames()">批量生成</button>
+                    <button class="action-btn copy-btn" onclick="copyToClipboard('batchUsernames')">复制</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="result-box batch-result-box">
+            <div class="result-content">
+                <div class="result-label">批量结果</div>
+                <textarea id="batchUsernames" class="result-textarea" readonly placeholder="点击“批量生成”后，这里会显示批量结果"></textarea>
+            </div>
+        </div>
     </div>
     
     <div id="notification" class="notification">已复制到剪贴板</div>
@@ -344,6 +427,7 @@
         // DOM元素
         const usernameElement = document.getElementById('username');
         const passwordElement = document.getElementById('password');
+        const batchUsernamesElement = document.getElementById('batchUsernames');
         const passwordLengthSlider = document.getElementById('passwordLength');
         const passwordLengthValue = document.getElementById('passwordLengthValue');
         const generateBothBtn = document.getElementById('generateBothBtn');
@@ -443,7 +527,13 @@
         
         // 复制到剪贴板
         function copyToClipboard(elementId) {
-            const text = document.getElementById(elementId).textContent;
+            const element = document.getElementById(elementId);
+            const text = element.value !== undefined ? element.value : element.textContent;
+
+            if (!text || !text.trim()) {
+                return;
+            }
+
             navigator.clipboard.writeText(text).then(() => {
                 showNotification();
             });
@@ -481,6 +571,48 @@
             );
             
             passwordElement.textContent = newPassword;
+        }
+
+        // 批量生成用户名，可选附带密码
+        function generateBatchUsernames() {
+            const usernameStyle = document.getElementById('usernameStyle').value;
+            const batchCount = parseInt(document.getElementById('batchCount').value);
+            const includePassword = document.getElementById('batchIncludePassword').checked;
+            const passwordLength = parseInt(passwordLengthSlider.value);
+            const useUppercase = document.getElementById('uppercase').checked;
+            const useLowercase = document.getElementById('lowercase').checked;
+            const useNumbers = document.getElementById('numbers').checked;
+            const useSymbols = document.getElementById('symbols').checked;
+            const usernames = new Set();
+            const results = [];
+            let attempts = 0;
+            const maxAttempts = batchCount * 30;
+
+            while (usernames.size < batchCount && attempts < maxAttempts) {
+                const username = generateUsername(usernameStyle);
+
+                if (!usernames.has(username)) {
+                    usernames.add(username);
+
+                    if (includePassword) {
+                        const password = generatePassword(
+                            passwordLength,
+                            useUppercase,
+                            useLowercase,
+                            useNumbers,
+                            useSymbols
+                        );
+
+                        results.push(`${username} | ${password}`);
+                    } else {
+                        results.push(username);
+                    }
+                }
+
+                attempts += 1;
+            }
+
+            batchUsernamesElement.value = results.join('\n');
         }
         
         // 同时生成按钮点击事件
