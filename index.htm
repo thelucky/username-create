@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>随机用户名与密码生成器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 500px;
+            padding: 30px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+        
+        .result-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .result-box {
+            position: relative;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #e1e5eb;
+            display: flex;
+            align-items: center;
+        }
+        
+        .result-content {
+            flex: 1;
+        }
+        
+        .result-label {
+            font-size: 14px;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+        
+        .result-value {
+            font-size: 18px;
+            font-weight: 500;
+            word-break: break-all;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 8px;
+            margin-left: 10px;
+        }
+        
+        .action-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        
+        .copy-btn {
+            background-color: #6e8efb;
+            color: white;
+        }
+        
+        .copy-btn:hover {
+            background-color: #5a7dfa;
+        }
+        
+        .generate-single-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .generate-single-btn:hover {
+            background-color: #45a049;
+        }
+        
+        .options-container {
+            margin-bottom: 25px;
+        }
+        
+        .option-group {
+            margin-bottom: 20px;
+        }
+        
+        .option-title {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            color: #495057;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .checkbox-item input {
+            width: 18px;
+            height: 18px;
+        }
+        
+        .slider-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .slider {
+            flex: 1;
+            height: 6px;
+            -webkit-appearance: none;
+            background: #e1e5eb;
+            border-radius: 3px;
+            outline: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #6e8efb;
+            cursor: pointer;
+        }
+        
+        .slider-value {
+            font-weight: 500;
+            color: #495057;
+            min-width: 30px;
+            text-align: center;
+        }
+        
+        .select-group {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #e1e5eb;
+            background-color: white;
+            font-size: 16px;
+        }
+        
+        .generate-both-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(to right, #6e8efb, #a777e3);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .generate-both-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .generate-both-btn:active {
+            transform: translateY(0);
+        }
+        
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 5px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .notification.show {
+            opacity: 1;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .result-value {
+                font-size: 16px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .action-btn {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>随机用户名与密码生成器</h1>
+        
+        <div class="result-container">
+            <div class="result-box">
+                <div class="result-content">
+                    <div class="result-label">用户名</div>
+                    <div id="username" class="result-value">点击生成按钮</div>
+                </div>
+                <div class="button-group">
+                    <button class="action-btn generate-single-btn" onclick="generateUsernameOnly()">生成</button>
+                    <button class="action-btn copy-btn" onclick="copyToClipboard('username')">复制</button>
+                </div>
+            </div>
+            
+            <div class="result-box">
+                <div class="result-content">
+                    <div class="result-label">密码</div>
+                    <div id="password" class="result-value">点击生成按钮</div>
+                </div>
+                <div class="button-group">
+                    <button class="action-btn generate-single-btn" onclick="generatePasswordOnly()">生成</button>
+                    <button class="action-btn copy-btn" onclick="copyToClipboard('password')">复制</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="options-container">
+            <div class="option-group">
+                <div class="option-title">用户名风格</div>
+                <select id="usernameStyle" class="select-group">
+                    <option value="adjective_noun">形容词+名词 (如: HappyTiger)</option>
+                    <option value="noun_number">名词+数字 (如: Dragon42)</option>
+                    <option value="firstname_lastname">名+姓 (如: JohnSmith)</option>
+                    <option value="random_mix">随机混合 (如: StarGlow1001)</option>
+                </select>
+            </div>
+            
+            <div class="option-group">
+                <div class="option-title">密码长度 (4-64位)</div>
+                <div class="slider-group">
+                    <input type="range" id="passwordLength" class="slider" min="4" max="64" value="16">
+                    <span id="passwordLengthValue" class="slider-value">16</span>
+                </div>
+            </div>
+            
+            <div class="option-group">
+                <div class="option-title">密码包含字符</div>
+                <div class="checkbox-group">
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="uppercase" checked>
+                        <span>大写字母 (A-Z)</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="lowercase" checked>
+                        <span>小写字母 (a-z)</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="numbers" checked>
+                        <span>数字 (0-9)</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="symbols" checked>
+                        <span>符号 (!@#$%)</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <button id="generateBothBtn" class="generate-both-btn">同时生成用户名和密码</button>
+    </div>
+    
+    <div id="notification" class="notification">已复制到剪贴板</div>
+
+    <script>
+        // 数据源
+        const adjectives = ['Happy', 'Brave', 'Clever', 'Swift', 'Gentle', 'Mighty', 'Silent', 'Wise', 'Bright', 'Calm', 
+                           'Fierce', 'Radiant', 'Mystic', 'Noble', 'Quick', 'Royal', 'Smart', 'Tiny', 'Wild', 'Young'];
+        const nouns = ['Tiger', 'Dragon', 'Eagle', 'Wolf', 'Phoenix', 'Lion', 'Falcon', 'Panther', 'Hawk', 'Fox',
+                      'Bear', 'Shark', 'Owl', 'Horse', 'Raven', 'Cobra', 'Leopard', 'Lynx', 'Dolphin', 'Whale',
+                      'Otter', 'Rabbit', 'Griffin', 'Viper', 'Buffalo', 'Stag', 'Moose', 'Bison', 'Puma', 'Jaguar',
+                      'Cheetah', 'Penguin', 'Sparrow', 'Peacock', 'Rhino', 'Turtle', 'Badger', 'Beaver', 'Cougar', 'Gecko',
+                      'Koala', 'Kraken', 'Mantis', 'Orca', 'Parrot', 'Salmon', 'Scorpion', 'Seal', 'Spider', 'Swan'];
+        const firstNames = ['James', 'Emma', 'Michael', 'Sophia', 'William', 'Olivia', 'Benjamin', 'Ava', 'Daniel', 'Isabella',
+                           'Henry', 'Mia', 'Alexander', 'Charlotte', 'Jackson', 'Amelia', 'Sebastian', 'Evelyn', 'Ethan', 'Abigail',
+                           'Matthew', 'Harper', 'Samuel', 'Emily', 'David', 'Elizabeth', 'Joseph', 'Avery', 'Carter', 'Sofia',
+                           'Owen', 'Ella', 'Wyatt', 'Scarlett', 'John', 'Grace', 'Jack', 'Chloe', 'Luke', 'Victoria',
+                           'Jayden', 'Riley', 'Dylan', 'Aria', 'Gabriel', 'Lily', 'Isaac', 'Aubrey', 'Levi', 'Zoey',
+                           'Julian', 'Hannah', 'Nathan', 'Layla', 'Christopher', 'Nora', 'Andrew', 'Lillian', 'Joshua', 'Addison',
+                           'Lincoln', 'Ellie', 'Ryan', 'Stella', 'Asher', 'Natalie', 'Thomas', 'Zoe', 'Charles', 'Leah',
+                           'Caleb', 'Hazel', 'Isaiah', 'Violet', 'Jonathan', 'Aurora', 'Christian', 'Savannah', 'Hunter', 'Audrey',
+                           'Connor', 'Brooklyn', 'Eli', 'Bella', 'Aaron', 'Claire', 'Adrian', 'Lucy', 'Nicholas', 'Anna',
+                           'Dominic', 'Sarah', 'Evan', 'Caroline', 'Adam', 'Genesis', 'Robert', 'Kennedy', 'Tyler', 'Samantha'];
+        const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez',
+                          'Hernandez', 'Lopez', 'Gonzalez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin',
+                          'Lee', 'Perez', 'Thompson', 'White', 'Harris', 'Sanchez', 'Clark', 'Ramirez', 'Lewis', 'Robinson',
+                          'Walker', 'Young', 'Allen', 'King', 'Wright', 'Scott', 'Torres', 'Nguyen', 'Hill', 'Flores',
+                          'Green', 'Adams', 'Nelson', 'Baker', 'Hall', 'Rivera', 'Campbell', 'Mitchell', 'Carter', 'Roberts'];
+        const symbols = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+        
+        // DOM元素
+        const usernameElement = document.getElementById('username');
+        const passwordElement = document.getElementById('password');
+        const passwordLengthSlider = document.getElementById('passwordLength');
+        const passwordLengthValue = document.getElementById('passwordLengthValue');
+        const generateBothBtn = document.getElementById('generateBothBtn');
+        const notification = document.getElementById('notification');
+        
+        // 更新密码长度显示
+        passwordLengthSlider.addEventListener('input', function() {
+            passwordLengthValue.textContent = this.value;
+        });
+        
+        // 生成随机用户名
+        function generateUsername(style) {
+            switch(style) {
+                case 'adjective_noun':
+                    const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+                    const noun = nouns[Math.floor(Math.random() * nouns.length)];
+                    return adj + noun;
+                    
+                case 'noun_number':
+                    const noun2 = nouns[Math.floor(Math.random() * nouns.length)];
+                    const num = Math.floor(Math.random() * 90) + 10; // 10-99
+                    return noun2 + num;
+                    
+                case 'firstname_lastname':
+                    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+                    const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+                    return firstName + lastName;
+                    
+                case 'random_mix':
+                    const adj2 = adjectives[Math.floor(Math.random() * adjectives.length)];
+                    const noun3 = nouns[Math.floor(Math.random() * nouns.length)];
+                    const num2 = Math.floor(Math.random() * 8999) + 1001; // 1001-9999
+                    return adj2 + noun3 + num2;
+                    
+                default:
+                    return adjectives[Math.floor(Math.random() * adjectives.length)] + 
+                           nouns[Math.floor(Math.random() * nouns.length)];
+            }
+        }
+        
+        // 生成随机密码
+        function generatePassword(length, useUppercase, useLowercase, useNumbers, useSymbols) {
+            const charTypes = [];
+            let charset = '';
+            
+            // 定义各种字符集
+            const uppercaseChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const lowercaseChars = 'abcdefghijklmnopqrstuvwxyz';
+            const numberChars = '0123456789';
+            const symbolChars = symbols;
+            
+            // 根据选中的选项构建字符集和类型列表
+            if (useUppercase) {
+                charset += uppercaseChars;
+                charTypes.push(uppercaseChars);
+            }
+            if (useLowercase) {
+                charset += lowercaseChars;
+                charTypes.push(lowercaseChars);
+            }
+            if (useNumbers) {
+                charset += numberChars;
+                charTypes.push(numberChars);
+            }
+            if (useSymbols) {
+                charset += symbolChars;
+                charTypes.push(symbolChars);
+            }
+            
+            // 确保至少选择了一种字符类型
+            if (charset === '') {
+                charset = 'abcdefghijklmnopqrstuvwxyz';
+                charTypes.push(charset);
+            }
+            
+            // 首先确保每种选中的字符类型至少出现一次
+            const requiredChars = [];
+            for (const charType of charTypes) {
+                const randomIndex = Math.floor(Math.random() * charType.length);
+                requiredChars.push(charType[randomIndex]);
+            }
+            
+            // 然后填充剩余的字符
+            for (let i = charTypes.length; i < length; i++) {
+                const randomIndex = Math.floor(Math.random() * charset.length);
+                requiredChars.push(charset[randomIndex]);
+            }
+            
+            // 打乱字符顺序以确保随机性
+            for (let i = requiredChars.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [requiredChars[i], requiredChars[j]] = [requiredChars[j], requiredChars[i]];
+            }
+            
+            return requiredChars.join('');
+        }
+        
+        // 复制到剪贴板
+        function copyToClipboard(elementId) {
+            const text = document.getElementById(elementId).textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                showNotification();
+            });
+        }
+        
+        // 显示通知
+        function showNotification() {
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 2000);
+        }
+        
+        // 仅生成用户名
+        function generateUsernameOnly() {
+            const usernameStyle = document.getElementById('usernameStyle').value;
+            const newUsername = generateUsername(usernameStyle);
+            usernameElement.textContent = newUsername;
+        }
+        
+        // 仅生成密码
+        function generatePasswordOnly() {
+            const passwordLength = parseInt(passwordLengthSlider.value);
+            const useUppercase = document.getElementById('uppercase').checked;
+            const useLowercase = document.getElementById('lowercase').checked;
+            const useNumbers = document.getElementById('numbers').checked;
+            const useSymbols = document.getElementById('symbols').checked;
+            
+            const newPassword = generatePassword(
+                passwordLength, 
+                useUppercase, 
+                useLowercase, 
+                useNumbers, 
+                useSymbols
+            );
+            
+            passwordElement.textContent = newPassword;
+        }
+        
+        // 同时生成按钮点击事件
+        generateBothBtn.addEventListener('click', function() {
+            const usernameStyle = document.getElementById('usernameStyle').value;
+            const passwordLength = parseInt(passwordLengthSlider.value);
+            const useUppercase = document.getElementById('uppercase').checked;
+            const useLowercase = document.getElementById('lowercase').checked;
+            const useNumbers = document.getElementById('numbers').checked;
+            const useSymbols = document.getElementById('symbols').checked;
+            
+            const newUsername = generateUsername(usernameStyle);
+            const newPassword = generatePassword(
+                passwordLength, 
+                useUppercase, 
+                useLowercase, 
+                useNumbers, 
+                useSymbols
+            );
+            
+            usernameElement.textContent = newUsername;
+            passwordElement.textContent = newPassword;
+        });
+        
+        // 初始生成一组用户名和密码
+        generateBothBtn.click();
+    </script>
+</body>
+</html>
